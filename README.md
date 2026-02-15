@@ -42,7 +42,7 @@ The application requires the following Python packages:
 
 **LLM Provider dependencies** (install based on your choice):
 - langchain-openai (>= 0.1.0): For OpenAI GPT models
-- langchain-community (>= 0.0.20): For Ollama and other local models
+- langchain-ollama (>= 0.1.0): For Ollama local models
 - langchain-anthropic (>= 0.1.0): For Anthropic Claude models
 - langchain-google-genai (>= 0.0.11): For Google Gemini models
 

@@ -40,9 +40,9 @@ def get_llm(provider="openai", model=None, **kwargs):
         )
     
     elif provider == "ollama":
-        from langchain_community.llms import Ollama
+        from langchain_ollama import OllamaLLM
         # Ollama runs locally, no API key needed
-        return Ollama(
+        return OllamaLLM(
             model=model or "llama2",
             temperature=kwargs.get("temperature", 0),
             base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")

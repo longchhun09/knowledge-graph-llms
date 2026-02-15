@@ -6,7 +6,7 @@ langchain-openai>=0.1.0
 # Alternative LLM providers (optional - install only what you need)
 langchain-anthropic>=0.1.0  # For Claude models
 langchain-google-genai>=0.0.11  # For Google Gemini
-langchain-community>=0.0.20  # For Ollama and other community models
+langchain-ollama>=0.1.0  # For Ollama local models
 
 # Environment variable support
 python-dotenv>=1.0.0
