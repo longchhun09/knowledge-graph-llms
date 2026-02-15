@@ -1,6 +1,5 @@
 from langchain_experimental.graph_transformers import LLMGraphTransformer
 from langchain_core.documents import Document
-from langchain_openai import ChatOpenAI
 from pyvis.network import Network
 
 from dotenv import load_dotenv
@@ -10,25 +9,89 @@ import asyncio
 
 # Load the .env file
 load_dotenv()
-# Get API key from environment variable
-api_key = os.getenv("OPENAI_API_KEY")
 
-llm = ChatOpenAI(temperature=0, model_name="gpt-4o")
 
-graph_transformer = LLMGraphTransformer(llm=llm)
+def get_llm(provider="openai", model=None, **kwargs):
+    """
+    Initialize and return an LLM based on the specified provider.
+    
+    Args:
+        provider (str): The LLM provider to use. Options: 'openai', 'ollama', 'anthropic', 'google'
+        model (str): The specific model name to use (optional, uses defaults if not specified)
+        **kwargs: Additional arguments to pass to the LLM constructor
+    
+    Returns:
+        An initialized LLM instance
+    
+    Raises:
+        ValueError: If the provider is not supported or required API keys are missing
+    """
+    provider = provider.lower()
+    
+    if provider == "openai":
+        from langchain_openai import ChatOpenAI
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            raise ValueError("OPENAI_API_KEY not found in environment variables")
+        return ChatOpenAI(
+            temperature=kwargs.get("temperature", 0),
+            model_name=model or "gpt-4o",
+            api_key=api_key
+        )
+    
+    elif provider == "ollama":
+        from langchain_community.llms import Ollama
+        # Ollama runs locally, no API key needed
+        return Ollama(
+            model=model or "llama2",
+            temperature=kwargs.get("temperature", 0),
+            base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+        )
+    
+    elif provider == "anthropic":
+        from langchain_anthropic import ChatAnthropic
+        api_key = os.getenv("ANTHROPIC_API_KEY")
+        if not api_key:
+            raise ValueError("ANTHROPIC_API_KEY not found in environment variables")
+        return ChatAnthropic(
+            temperature=kwargs.get("temperature", 0),
+            model_name=model or "claude-3-sonnet-20240229",
+            api_key=api_key
+        )
+    
+    elif provider == "google":
+        from langchain_google_genai import ChatGoogleGenerativeAI
+        api_key = os.getenv("GOOGLE_API_KEY")
+        if not api_key:
+            raise ValueError("GOOGLE_API_KEY not found in environment variables")
+        return ChatGoogleGenerativeAI(
+            temperature=kwargs.get("temperature", 0),
+            model=model or "gemini-pro",
+            google_api_key=api_key
+        )
+    
+    else:
+        raise ValueError(f"Unsupported provider: {provider}. Supported providers: openai, ollama, anthropic, google")
+
+
+# Default LLM (can be overridden by passing provider to generate_knowledge_graph)
+llm = None
+graph_transformer = None
 
 
 # Extract graph data from input text
-async def extract_graph_data(text):
+async def extract_graph_data(text, llm_instance):
     """
     Asynchronously extracts graph data from input text using a graph transformer.
 
     Args:
         text (str): Input text to be processed into graph format.
+        llm_instance: The LLM instance to use for extraction.
 
     Returns:
         list: A list of GraphDocument objects containing nodes and relationships.
     """
+    graph_transformer = LLMGraphTransformer(llm=llm_instance)
     documents = [Document(page_content=text)]
     graph_documents = await graph_transformer.aconvert_to_graph_documents(documents)
     return graph_documents
@@ -109,7 +172,7 @@ def visualize_graph(graph_documents):
         return None
 
 
-def generate_knowledge_graph(text):
+def generate_knowledge_graph(text, provider="openai", model=None):
     """
     Generates and visualizes a knowledge graph from input text.
 
@@ -118,10 +181,16 @@ def generate_knowledge_graph(text):
 
     Args:
         text (str): Input text to convert into a knowledge graph.
+        provider (str): LLM provider to use ('openai', 'ollama', 'anthropic', 'google'). Default: 'openai'
+        model (str): Specific model name to use (optional, uses provider defaults if not specified)
 
     Returns:
         pyvis.network.Network: The visualized network graph object.
     """
-    graph_documents = asyncio.run(extract_graph_data(text))
+    # Initialize the LLM based on the selected provider
+    llm_instance = get_llm(provider=provider, model=model)
+    
+    # Extract graph data and visualize
+    graph_documents = asyncio.run(extract_graph_data(text, llm_instance))
     net = visualize_graph(graph_documents)
     return net
