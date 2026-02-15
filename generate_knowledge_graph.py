@@ -74,11 +74,6 @@ def get_llm(provider="openai", model=None, **kwargs):
         raise ValueError(f"Unsupported provider: {provider}. Supported providers: openai, ollama, anthropic, google")
 
 
-# Default LLM (can be overridden by passing provider to generate_knowledge_graph)
-llm = None
-graph_transformer = None
-
-
 # Extract graph data from input text
 async def extract_graph_data(text, llm_instance):
     """

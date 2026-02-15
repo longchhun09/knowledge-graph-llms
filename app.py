@@ -86,8 +86,8 @@ if input_method == "Upload txt":
                     net.save_graph(output_file) 
 
                     # Open the HTML file and display it within the Streamlit app
-                    HtmlFile = open(output_file, 'r', encoding='utf-8')
-                    components.html(HtmlFile.read(), height=1000)
+                    with open(output_file, 'r', encoding='utf-8') as HtmlFile:
+                        components.html(HtmlFile.read(), height=1000)
                 except Exception as e:
                     st.error(f"Error generating knowledge graph: {str(e)}")
                     st.info("Please check your API keys in the .env file and ensure all dependencies are installed.")
@@ -110,8 +110,8 @@ else:
                     net.save_graph(output_file) 
 
                     # Open the HTML file and display it within the Streamlit app
-                    HtmlFile = open(output_file, 'r', encoding='utf-8')
-                    components.html(HtmlFile.read(), height=1000)
+                    with open(output_file, 'r', encoding='utf-8') as HtmlFile:
+                        components.html(HtmlFile.read(), height=1000)
                 except Exception as e:
                     st.error(f"Error generating knowledge graph: {str(e)}")
                     st.info("Please check your API keys in the .env file and ensure all dependencies are installed.")
